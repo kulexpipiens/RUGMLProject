@@ -3,7 +3,7 @@ from bot import Bot
 
 import random
 import sys
-import csv
+from plot_data_funcs import printIteration, writeCsv
 
 import pygame
 from pygame.locals import *
@@ -58,7 +58,6 @@ PIPES_LIST = (
 
 def main():
     global SCREEN, FPSCLOCK, bot
-    printIteration(True)
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
     SCREEN = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
@@ -479,29 +478,6 @@ def getHitmask(image):
         for y in range(image.get_height()):
             mask[x].append(bool(image.get_at((x,y))[3]))
     return mask
-
-def writeCsv(score):
-    iteration = getIteration()
-    with open('data/data.csv', 'a') as csvfile:
-        writer = csv.writer(csvfile)
-        aList = [str(iteration), str(score)]
-        writer.writerow(aList)
-    printIteration()
-
-def getIteration():
-    with open('data/iteration.csv', 'r') as csvfile:
-        reader = csv.reader(csvfile)
-        lastrow = reader.next()
-        return lastrow[0]
-
-def printIteration(*args):
-    if len(args) > 0:
-        iteration = 1
-    else:
-        iteration = int(getIteration()) + 1
-    with open('data/iteration.csv', 'w+') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow([str(iteration)])
 
 if __name__ == '__main__':
     main()
