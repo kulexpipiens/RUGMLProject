@@ -1,5 +1,5 @@
 import json
-
+from constants import *
 
 class Bot(object):
     # The Bot class that applies the Qlearning logic to Flappy bird game
@@ -20,7 +20,7 @@ class Bot(object):
         # Load q values from a JSON file
         self.qvalues = {}
         try:
-            fil = open('data/qvalues.json', 'r')
+            fil = open(FILE_QVALUES, 'r')
         except IOError:
             return
         self.qvalues = json.load(fil)
@@ -81,12 +81,12 @@ class Bot(object):
         # X -> [-40,-30...120] U [140, 210 ... 420]
         # Y -> [-300, -290 ... 160] U [180, 240 ... 420]
         if xdif < 140:
-            xdif = int(xdif) - (int(xdif) % 5)
+            xdif = int(xdif) - (int(xdif) % RENAME_ME)
         else:
             xdif = int(xdif) - (int(xdif) % 70)
 
         if ydif < 180:
-            ydif = int(ydif) - (int(ydif) % 5)
+            ydif = int(ydif) - (int(ydif) % RENAME_ME)
         else:
             ydif = int(ydif) - (int(ydif) % 60)
 
@@ -95,7 +95,7 @@ class Bot(object):
     def dump_qvalues(self):
         # Dump the qvalues to the JSON file
         if self.gameCNT % self.DUMPING_N == 0:
-            fil = open('data/qvalues.json', 'w')
+            fil = open(FILE_QVALUES, 'w')
             json.dump(self.qvalues, fil)
             fil.close()
             print('Q-values updated on local file.')

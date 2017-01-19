@@ -1,7 +1,7 @@
 import json
+from constants import *
 from itertools import chain
 from plot_data_funcs import cleanCsv, printIteration
-
 
 # Script to create Q-Value JSON file, initilazing with zeros
 
@@ -14,7 +14,7 @@ for x in chain(list(range(-40,140,5)), list(range(140,421,70))):
             qval[str(x)+'_'+str(y)+'_'+str(v)] = [0,0]
 
 
-fd = open('data/qvalues.json', 'w')
+fd = open(FILE_QVALUES, 'w')
 json.dump(qval, fd)
 fd.close()
 
