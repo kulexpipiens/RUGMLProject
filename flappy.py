@@ -6,14 +6,21 @@ import random
 import sys
 import os
 from plot_data_funcs import printIteration, writeCsv
+from initialize_data import *
 
 import pygame
 from pygame.locals import *
 
+data_exists = os.path.exists(FILE_DATA)
+iterations_exists = os.path.exists(FILE_ITERATIONS)
+qvalues_exists = os.path.exists(FILE_QVALUES)
+if (not data_exists or not iterations_exists or not qvalues_exists):
+    initialize_data()
+
 # Initialize the bot
 bot = Bot()
 
-FPS = 60
+FPS = FPS_GLOBAL
 SCREENWIDTH  = 288
 SCREENHEIGHT = 512
 # amount by which base can maximum shift to left

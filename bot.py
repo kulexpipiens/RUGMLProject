@@ -7,10 +7,10 @@ class Bot(object):
     # After every DUMPING_N iterations, dumps the Q values to the local JSON file
     def __init__(self):
         self.gameCNT = 0 # Game count of current run, incremented after every death
-        self.DUMPING_N = 15 # Number of iterations to dump Q values to JSON after
-        self.discount = 1.0
-        self.r = {0: 1, 1: -1000} # Reward function
-        self.lr = 0.7
+        self.DUMPING_N = DUMPING_RATE # Number of iterations to dump Q values to JSON after
+        self.discount = DISCOUNT
+        self.r = REWARD # Reward function
+        self.lr = LEARNING_RATE
         self.load_qvalues()
         self.last_state = "420_240_0"
         self.last_action = 0
@@ -81,12 +81,12 @@ class Bot(object):
         # X -> [-40,-30...120] U [140, 210 ... 420]
         # Y -> [-300, -290 ... 160] U [180, 240 ... 420]
         if xdif < 140:
-            xdif = int(xdif) - (int(xdif) % RENAME_ME)
+            xdif = int(xdif) - (int(xdif) % SIZE)
         else:
             xdif = int(xdif) - (int(xdif) % 70)
 
         if ydif < 180:
-            ydif = int(ydif) - (int(ydif) % RENAME_ME)
+            ydif = int(ydif) - (int(ydif) % SIZE)
         else:
             ydif = int(ydif) - (int(ydif) % 60)
 
