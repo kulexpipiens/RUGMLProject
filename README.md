@@ -1,5 +1,17 @@
 # Repository instruction
 
+## Running
+
+Set constants in file `constants.py` and run by:
+
+    python flappy.py
+
+## Plot image
+
+Set constants in file `constants.py` and run by:
+
+    python plot_chart.py
+
 ## /
 
 ### bot.py
