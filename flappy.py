@@ -354,9 +354,11 @@ def showGameOverScreen(crashInfo):
     upperPipes, lowerPipes = crashInfo['upperPipes'], crashInfo['lowerPipes']
 
     # play hit and die sounds
-    if PLAY_SOUNDS: SOUNDS['hit'].play()
+    if PLAY_SOUNDS:
+      SOUNDS['hit'].play()
     if not crashInfo['groundCrash']:
-   	if PLAY_SOUNDS: SOUNDS['die'].play()
+     	if PLAY_SOUNDS:
+            SOUNDS['die'].play()
 
     while True:
         ''' De-activated press key functionality
