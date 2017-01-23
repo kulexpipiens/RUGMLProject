@@ -1,4 +1,5 @@
 import csv
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 from constants import *
@@ -12,17 +13,28 @@ iterations=[]
 scores=[]
 averages=[]
 
-with open(FILE_DATA, 'rb') as csvfile:
-	spamreader = csv.reader(csvfile, delimiter=',')
-	for row in spamreader:
-		iterations.append(float(row[0]))
-		scores.append(float(row[1]))
-		# calculating trend
-		averages.append(np.mean(scores[-TREND_ACCURACY:]))
+def plot_func(*args):
+    if len(args) > 0:
+        file_name = args[0]
+        file_image = file_name.replace('data/data', 'images/img')
+    else:
+        file_name = FILE_NAME
+        file_image = FILE_IMAGE
+    print(file_name, end=' ')
+    print(file_image, end = ' ')
+    with open(file_name, 'r') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',')
+        for row in spamreader:
+            print(str(row))
+            iterations.append(float(row[0]))
+            scores.append(float(row[1]))
+            # calculating trend
+            averages.append(np.mean(scores[-TREND_ACCURACY:]))
+    # plotting real values
+    plt.plot(iterations, scores, 'r.')
+    # plotting trend
+    plt.plot(iterations, averages, "b")
+    plt.savefig(file_image, dpi=DPI)
 
-# plotting real values
-plt.plot(iterations, scores, 'r.')
-# plotting trend
-plt.plot(iterations, averages, "b")
-
-plt.savefig(FILE_IMAGE, dpi=DPI)
+if __name__ == '__main__':
+    plot_func()
