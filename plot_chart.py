@@ -17,6 +17,7 @@ def plot_func(*args):
     if len(args) > 0:
         file_name = args[0]
         file_image = file_name.replace('data/data', 'images/img')
+        file_image = file_image.replace('csv', 'png')
     else:
         file_name = FILE_NAME
         file_image = FILE_IMAGE
