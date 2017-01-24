@@ -20,8 +20,8 @@ def plot_func(*args):
     else:
         file_name = FILE_DATA
         file_image = FILE_IMAGE
-    print(file_name, end=' ')
-    print(file_image, end = ' ')
+    #print(file_name, end=' ')
+    #print(file_image, end = ' ')
     with open(file_name, 'r') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',')
         for row in spamreader:
