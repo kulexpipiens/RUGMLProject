@@ -35,6 +35,7 @@ def plot_func(*args):
     # plotting trend
     plt.plot(iterations, averages, "b")
     plt.savefig(file_image, dpi=DPI)
+    plt.clf()
 
 if __name__ == '__main__':
     plot_func()
