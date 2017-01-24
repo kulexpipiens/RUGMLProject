@@ -9,17 +9,16 @@ DPI=1000
 # number of previous values to calculate average
 TREND_ACCURACY=150
 
-iterations=[]
-scores=[]
-averages=[]
-
 def plot_func(*args):
+    iterations = []
+    scores = []
+    averages = []
     if len(args) > 0:
         file_name = args[0]
         file_image = file_name.replace('data/data', 'images/img')
         file_image = file_image.replace('csv', 'png')
     else:
-        file_name = FILE_NAME
+        file_name = FILE_DATA
         file_image = FILE_IMAGE
     print(file_name, end=' ')
     print(file_image, end = ' ')

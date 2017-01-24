@@ -1,8 +1,8 @@
 FPS_GLOBAL = 0
 PLAY_SOUNDS = False
 SHOW_SCREEN = False
-SIZE = 5 # 5 for our qvalues 10 for original
-DUMPING_RATE = 15 # Number of iterations to dump Q values to JSON after
+SIZE = 2 # 5 for our qvalues 10 for original
+DUMPING_RATE = 5 # Number of iterations to dump Q values to JSON after
 DISCOUNT = 1.0
 REWARD = {0: 1, 1: -1000} # Reward function
 LEARNING_RATE = 0.9
