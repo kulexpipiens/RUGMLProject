@@ -10,8 +10,10 @@ DPI=500
 TREND_ACCURACY=1000
 
 colors = ["#000000", "#0000FF", "#A52A2A", "#7FFF00", "#DC143C", "#006400", "#FF8C00", "#FF1493", "#FFD700", "#808080"]
+notplotlr = ['0.4', '0.7']
 
 def add_to_plot(file_name, i, lr):
+	if lr in notplotlr: return
 	iterations = []
 	scores = []
 	averages = []
@@ -38,4 +40,4 @@ for file in glob.glob('data/data_*'):
 		i+=1
 
 plt.legend(bbox_to_anchor=(1, 1), loc=1, borderaxespad=1.5)
-plt.savefig("images2/plot1_TA"+str(TREND_ACCURACY)+".png", dpi=DPI)
+plt.savefig("images2/plot1_TA"+str(TREND_ACCURACY)+"without"+str(notplotlr)+".png", dpi=DPI)
