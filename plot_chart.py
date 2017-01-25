@@ -20,6 +20,9 @@ def plot_func(*args):
     else:
         file_name = FILE_DATA
         file_image = FILE_IMAGE
+    
+    namea = file_name.split('_')
+    change = namea[2] == '15' and namea[6] == '1.0' and namea[8].split('.')[0] == '5'
     with open(file_name, 'r') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',')
         for row in spamreader:
@@ -27,6 +30,9 @@ def plot_func(*args):
             scores.append(float(row[1]))
             # calculating trend
             averages.append(np.mean(scores[-TREND_ACCURACY:]))
+            #du 15 di 1.0 sz 5
+            if change and len(iterations) == 7000:
+                break;
     plt.xlim(len(iterations) + 150)
     plt.gca().invert_xaxis()
     plt.xlabel('Iterations')
