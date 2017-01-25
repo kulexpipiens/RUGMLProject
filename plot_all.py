@@ -15,3 +15,5 @@ for file in glob.glob('data/data_*'):
     plot_func(file)
 
 
+
+

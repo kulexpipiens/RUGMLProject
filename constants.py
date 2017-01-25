@@ -2,12 +2,12 @@ FPS_GLOBAL = 0
 PLAY_SOUNDS = False
 SHOW_SCREEN = False
 SIZE = 5 # 5 for our qvalues 10 for original
-DUMPING_RATE = 15 # Number of iterations to dump Q values to JSON after
+DUMPING_RATE = 1000 # Number of iterations to dump Q values to JSON after
 DISCOUNT = 1.0
 REWARD = {0: 1, 1: -1000} # Reward function
-LEARNING_RATE = 0.6
+LEARNING_RATE = 0.7
 
-TAG = '_du_' + str(DUMPING_RATE) + '_lr_' + str(LEARNING_RATE) + '_di_' + str(DISCOUNT) + '_sz_' + str(SIZE) #+ '_new'
+TAG = '_du_' + str(DUMPING_RATE) + '_lr_' + str(LEARNING_RATE) + '_di_' + str(DISCOUNT) + '_sz_' + str(SIZE) + '_new'
 FILE_QVALUES = 'data/qvalues' + TAG + '.json'
 FILE_ITERATIONS = 'data/iteration' + TAG + '.csv'
 FILE_DATA = 'data/data' + TAG + '.csv'
