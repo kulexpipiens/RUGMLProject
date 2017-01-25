@@ -7,7 +7,7 @@ import glob
 # dpi of figure
 DPI=500
 # number of previous values to calculate average
-TREND_ACCURACY=150
+TREND_ACCURACY=400
 
 colors = ["#000000", "#0000FF", "#A52A2A", "#7FFF00", "#DC143C", "#006400", "#FF8C00", "#FF1493", "#FFD700", "#808080"]
 
