@@ -5,7 +5,7 @@ import numpy as np
 from constants import *
 
 # dpi of figure
-DPI=1000
+DPI=500
 # number of previous values to calculate average
 TREND_ACCURACY=150
 
