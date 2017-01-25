@@ -12,7 +12,7 @@ def writeCsv(score):
 def getIteration():
     with open(FILE_ITERATIONS, 'r') as csvfile:
         reader = csv.reader(csvfile)
-        lastrow = reader.__next__()
+        lastrow = reader.next()
         return lastrow[0]
 
 def printIteration(*args):
