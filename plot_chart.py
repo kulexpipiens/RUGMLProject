@@ -31,7 +31,7 @@ def plot_func(*args):
             # calculating trend
             averages.append(np.mean(scores[-TREND_ACCURACY:]))
             #du 15 di 1.0 sz 5
-            if change and len(iterations) == 7000:
+            if change and len(iterations) == 7000 and namea[4] != '1e-05':
                 break;
     plt.xlim(len(iterations) + 150)
     plt.gca().invert_xaxis()

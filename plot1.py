@@ -9,8 +9,8 @@ DPI=500
 # number of previous values to calculate average
 TREND_ACCURACY=1000
 
-colors = ["#000000", "#0000FF", "#A52A2A", "#7FFF00", "#DC143C", "#006400", "#FF8C00", "#FF1493", "#FFD700", "#808080"]
-notplotlr = ['0.4', '0.7']
+colors = ["#000000", "#0000FF", "#A52A2A", "#7FFF00", "#DC143C", "#006400", "#FF8C00", "#FF1493", "#FFD700", "#808080", "#669900", "#ff66ff"]
+notplotlr = []#['0.4', '0.7']
 
 def add_to_plot(file_name, i, lr):
 	if lr in notplotlr: return
@@ -34,10 +34,10 @@ def add_to_plot(file_name, i, lr):
 i=0
 for file in glob.glob('data/data_*'):
 	namea = file.split('_')
-	change = namea[2] == '15' and namea[6] == '1.0' and namea[8].split('.')[0] == '5'
+	change = namea[2] == '15' and namea[6] == '1.0' and namea[8].split('.')[0] == '5' and len(namea) < 10
 	if change:
 		add_to_plot(file, i, namea[4])
 		i+=1
 
-plt.legend(bbox_to_anchor=(1, 1), loc=1, borderaxespad=1.5)
-plt.savefig("images2/plot1_TA"+str(TREND_ACCURACY)+"without"+str(notplotlr)+".png", dpi=DPI)
+plt.legend(bbox_to_anchor=(1, 1), loc=1, borderaxespad=.5)
+plt.savefig("images2/plot1_TA"+str(TREND_ACCURACY)+"without"+str(notplotlr)+"_new2.png", dpi=DPI)
