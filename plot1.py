@@ -7,7 +7,7 @@ import glob
 # dpi of figure
 DPI=500
 # number of previous values to calculate average
-TREND_ACCURACY=400
+TREND_ACCURACY=1000
 
 colors = ["#000000", "#0000FF", "#A52A2A", "#7FFF00", "#DC143C", "#006400", "#FF8C00", "#FF1493", "#FFD700", "#808080"]
 
@@ -38,4 +38,4 @@ for file in glob.glob('data/data_*'):
 		i+=1
 
 plt.legend(bbox_to_anchor=(1, 1), loc=1, borderaxespad=1.5)
-plt.savefig("images2/plot1.png", dpi=DPI)
+plt.savefig("images2/plot1_TA"+str(TREND_ACCURACY)+".png", dpi=DPI)
