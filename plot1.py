@@ -9,7 +9,7 @@ DPI=500
 # number of previous values to calculate average
 TREND_ACCURACY=150
 
-colors = ["b", "g", "r", "c", "m", "y", "k"]
+colors = ["#000000", "#0000FF", "#A52A2A", "#7FFF00", "#DC143C", "#006400", "#FF8C00", "#FF1493", "#FFD700", "#808080"]
 
 def add_to_plot(file_name, i):
 	iterations = []
@@ -26,7 +26,9 @@ def add_to_plot(file_name, i):
 			#du 15 di 1.0 sz 5
 			if len(iterations) == 20000:
 				break;
-	plt.plot(iterations, averages, colors[i%len(colors)])
+	l = '0.'+str(i+1)
+	if i == 9: l = '1.0'
+	plt.plot(iterations, averages, colors[i%len(colors)], label=l, linewidth=2)
 i=0
 for file in glob.glob('data/data_*'):
 	namea = file.split('_')
@@ -34,5 +36,5 @@ for file in glob.glob('data/data_*'):
 	if change:
 		add_to_plot(file, i)
 		i+=1
-
+plt.legend(bbox_to_anchor=(1, 1), loc=1, borderaxespad=1.5)
 plt.savefig("images2/plot1.png", dpi=DPI)
