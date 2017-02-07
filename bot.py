@@ -30,23 +30,22 @@ class Bot(object):
         # Chooses the best action with respect to the current state - Chooses 0 (don't flap) to tie-break
         state = self.map_state(xdif, ydif, vel)
 
-        self.moves.append( [self.last_state, self.last_action, state] ) # Add the experience to the history
-
-        self.last_state = state # Update the last_state with the current state
-
         if self.qvalues[state][0] >= self.qvalues[state][1]:
+            self.moves.append( [self.last_state, self.last_action, state, 0] ) # Add the experience to the history
+            self.last_state = state # Update the last_state with the current state
             self.last_action = 0
             return 0
         else:
+            self.moves.append( [self.last_state, self.last_action, state, 1] ) # Add the experience to the history
+            self.last_state = state # Update the last_state with the current state
             self.last_action = 1
             return 1
 
     def get_last_state(self):
         return self.last_state
-
-
-    def update_scores(self):
-        #Update qvalues via iterating over experiences
+        
+    def use_qlearning(self):
+		#Update qvalues via iterating over experiences
         history = list(reversed(self.moves))
 
         #Flag if the bird died in the top pipe
@@ -60,11 +59,9 @@ class Bot(object):
             res_state = exp[2]
             if t == 1 or t==2:
                 self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*max(self.qvalues[res_state]) )
-
-            elif high_death_flag and act:
-                self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*max(self.qvalues[res_state]) )
-                high_death_flag = False
-
+            #elif high_death_flag and act:
+            #    self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*max(self.qvalues[res_state]) )
+            #    high_death_flag = False
             else:
                 self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[0] + (self.discount)*max(self.qvalues[res_state]) )
 
@@ -73,6 +70,41 @@ class Bot(object):
         self.gameCNT += 1 #increase game count
         self.dump_qvalues() # Dump q values (if game count % DUMPING_N == 0)
         self.moves = []  #clear history after updating strategies
+        
+    def use_sarsa(self):
+		#Update qvalues via iterating over experiences
+        history = list(reversed(self.moves))
+
+        #Flag if the bird died in the top pipe
+        high_death_flag = True if int(history[0][2].split('_')[1]) > 120 else False
+
+        #Q-learning score updates
+        t = 1
+        act = history[0][1]
+        for exp in history:
+            state = exp[0]
+            res_state = exp[2]
+            res_act = exp[3]
+            if t == 1 or t==2:
+                self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*self.qvalues[res_state][res_act] )
+
+            elif high_death_flag and act:
+                self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*self.qvalues[res_state][res_act] )
+                high_death_flag = False
+
+            else:
+                self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[0] + (self.discount)*self.qvalues[res_state][res_act] )
+
+            t += 1
+            act = res_act
+
+        self.gameCNT += 1 #increase game count
+        self.dump_qvalues() # Dump q values (if game count % DUMPING_N == 0)
+        self.moves = []  #clear history after updating strategies
+
+
+    def update_scores(self):
+        self.use_qlearning() if USE_QLEARNING else self.use_sarsa()
 
     def map_state(self, xdif, ydif, vel):
         # Map the (xdif, ydif, vel) to the respective state, with regards to the grids
