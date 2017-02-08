@@ -244,7 +244,7 @@ def mainGame(movementInfo):
     playerFlapAcc =  -9   # players speed on flapping
     playerFlapped = False # True when player flaps
 
-
+    i=0
     while True:
         if -playerx + lowerPipes[0]['x'] > -30: myPipe = lowerPipes[0]
         else: myPipe = lowerPipes[1]
@@ -338,6 +338,9 @@ def mainGame(movementInfo):
 
         pygame.display.update()
         FPSCLOCK.tick(FPS)
+
+        if DEBUGGING and i>400: return
+        i+=1
 
 
 def showGameOverScreen(crashInfo):

@@ -16,6 +16,11 @@ class Bot(object):
         self.last_action = 0
         self.moves = []
 
+        self.possibilities = {}
+	self.actual = ""
+	self.sum = 0
+        self.LENGTH_ACT = 5
+
     def load_qvalues(self):
         # Load q values from a JSON file
         self.qvalues = {}
@@ -26,17 +31,56 @@ class Bot(object):
         self.qvalues = json.load(fil)
         fil.close()
 
+    def generate(self, i, xdif, ydif, vel):
+        if i == self.LENGTH_ACT or xdif < -29:
+            self.possibilities[self.actual] = self.sum
+            #print(self.sum)
+            #print("xdif: " + str(xdif) + ", ydif: " + str(ydif) + ", vel: " + str(vel) + ", state: " + self.map_state(xdif, ydif, vel))
+            return
+
+        state = self.map_state(xdif, ydif, vel)
+
+        self.actual += "0"
+	self.sum += self.qvalues[state][0]
+	n_vel = min(vel + 1, 10)
+	self.generate(i + 1, xdif - 4, ydif - n_vel, n_vel)
+
+	self.actual = self.actual[:-1]
+	self.sum -= self.qvalues[state][0]
+
+	self.actual += "1"
+	self.sum += self.qvalues[state][1]
+	self.generate(i + 1, xdif - 4, ydif + 9, -9)
+
+	self.actual = self.actual[:-1]
+	self.sum -= self.qvalues[state][1]
+
+    def not_flap(self, xdif, ydif, vel):
+        self.generate(0, xdif, ydif, vel)
+        #print(self.possibilities)
+        max = float("-inf")
+        for key, value in self.possibilities.iteritems():
+            #print(key + " "+str(value))
+            if max <= value:
+                max = value
+                out = int(key[0])
+        #print(out)
+        return True if out == 0 else False
+
     def act(self, xdif, ydif, vel):
         # Chooses the best action with respect to the current state - Chooses 0 (don't flap) to tie-break
         state = self.map_state(xdif, ydif, vel)
+        self.possibilities = {}
 
-        if self.qvalues[state][0] >= self.qvalues[state][1]:
+        if self.not_flap(xdif, ydif, vel):
             self.moves.append( [self.last_state, self.last_action, state, 0] ) # Add the experience to the history
+            #print("xdif: " + str(xdif) + ", ydif: " + str(ydif) + ", vel: " + str(vel) + ", state: " + state + ", action: 0")
             self.last_state = state # Update the last_state with the current state
             self.last_action = 0
             return 0
         else:
             self.moves.append( [self.last_state, self.last_action, state, 1] ) # Add the experience to the history
+            #print("xdif: " + str(xdif) + ", ydif: " + str(ydif) + ", vel: " + str(vel) + ", state: " + state + ", action: 1")
             self.last_state = state # Update the last_state with the current state
             self.last_action = 1
             return 1
@@ -59,9 +103,9 @@ class Bot(object):
             res_state = exp[2]
             if t == 1 or t==2:
                 self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*max(self.qvalues[res_state]) )
-            #elif high_death_flag and act:
-            #    self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*max(self.qvalues[res_state]) )
-            #    high_death_flag = False
+            elif high_death_flag and act:
+                self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*max(self.qvalues[res_state]) )
+                high_death_flag = False
             else:
                 self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[0] + (self.discount)*max(self.qvalues[res_state]) )
 
