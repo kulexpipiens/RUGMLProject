@@ -22,7 +22,7 @@ def plot_func(*args):
         file_image = FILE_IMAGE
     
     namea = file_name.split('_')
-    change = namea[2] == '15' and namea[6] == '1.0' and namea[8].split('.')[0] == '5'
+    change = len(namea) >= 9 and namea[2] == '15' and namea[6] == '1.0' and namea[8].split('.')[0] == '5'
     with open(file_name, 'r') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',')
         for row in spamreader:

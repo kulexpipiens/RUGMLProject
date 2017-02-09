@@ -19,7 +19,19 @@ class Bot(object):
         self.possibilities = {}
 	self.actual = ""
 	self.sum = 0
-        self.LENGTH_ACT = 5
+        self.LENGTH_ACT = STEPS
+
+        if ALGORITHM == Algorithm.QVLEARNING: self.load_vvalues()
+
+    def load_vvalues(self):
+        # Load q values from a JSON file
+        self.vvalues = {}
+        try:
+            fil = open(FILE_VVALUES, 'r')
+        except IOError:
+            return
+        self.vvalues = json.load(fil)
+        fil.close()
 
     def load_qvalues(self):
         # Load q values from a JSON file
@@ -62,6 +74,8 @@ class Bot(object):
         for key, value in self.possibilities.iteritems():
             #print(key + " "+str(value))
             if max <= value:
+                if max == value and out == 0:
+                    continue
                 max = value
                 out = int(key[0])
         #print(out)
@@ -89,7 +103,7 @@ class Bot(object):
         return self.last_state
         
     def use_qlearning(self):
-		#Update qvalues via iterating over experiences
+        #Update qvalues via iterating over experiences
         history = list(reversed(self.moves))
 
         #Flag if the bird died in the top pipe
@@ -97,11 +111,12 @@ class Bot(object):
 
         #Q-learning score updates
         t = 1
+        r = range(1, min(STEPS+1, 5))
         for exp in history:
             state = exp[0]
             act = exp[1]
             res_state = exp[2]
-            if t == 1 or t==2:
+            if t in r:
                 self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*max(self.qvalues[res_state]) )
             elif high_death_flag and act:
                 self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*max(self.qvalues[res_state]) )
@@ -114,9 +129,22 @@ class Bot(object):
         self.gameCNT += 1 #increase game count
         self.dump_qvalues() # Dump q values (if game count % DUMPING_N == 0)
         self.moves = []  #clear history after updating strategies
-        
-    def use_sarsa(self):
-		#Update qvalues via iterating over experiences
+
+    def update_vvalues(self, reward, res_state, state, e):
+        e_new = {}
+        for key, value in e.iteritems():
+            e_new[key] = 0
+
+        for k,v in self.vvalues.iteritems():
+            n = 1 if k == state else 0
+            delta = reward + (self.discount * self.vvalues[res_state]) - self.vvalues[state]
+            e_new[k] = (self.discount * LAMBDA * e[k]) + n
+            self.vvalues[k] = self.vvalues[k] + (self.lr * delta * e_new[k])
+        return e_new
+
+
+    def use_qvlearning(self):
+        #Update qvalues via iterating over experiences
         history = list(reversed(self.moves))
 
         #Flag if the bird died in the top pipe
@@ -124,12 +152,50 @@ class Bot(object):
 
         #Q-learning score updates
         t = 1
+        r = range(1, min(STEPS+1, 5))
+
+        e = {}
+        for key, value in self.vvalues.iteritems():
+            e[key] = 0
+
+        for exp in history:
+            state = exp[0]
+            act = exp[1]
+            res_state = exp[2]
+            if t in r:
+                e = self.update_vvalues(self.r[1], res_state, state, e)
+                self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*self.vvalues[res_state] )
+            elif high_death_flag and act:
+                e = self.update_vvalues(self.r[1], res_state, state, e)
+                self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*self.vvalues[res_state] )
+                high_death_flag = False
+            else:
+                e = self.update_vvalues(self.r[0], res_state, state, e)
+                self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[0] + (self.discount)*self.vvalues[res_state] )
+
+            t += 1
+
+        self.gameCNT += 1 #increase game count
+        self.dump_qvalues() # Dump q values (if game count % DUMPING_N == 0)
+        self.dump_vvalues()
+        self.moves = []  #clear history after updating strategies
+        
+    def use_sarsa(self):
+        #Update qvalues via iterating over experiences
+        history = list(reversed(self.moves))
+
+        #Flag if the bird died in the top pipe
+        high_death_flag = True if int(history[0][2].split('_')[1]) > 120 else False
+
+        #Q-learning score updates
+        t = 1
+        r = range(1, min(STEPS+1, 5))
         act = history[0][1]
         for exp in history:
             state = exp[0]
             res_state = exp[2]
             res_act = exp[3]
-            if t == 1 or t==2:
+            if t in r:
                 self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*self.qvalues[res_state][res_act] )
 
             elif high_death_flag and act:
@@ -148,7 +214,13 @@ class Bot(object):
 
 
     def update_scores(self):
-        self.use_qlearning() if USE_QLEARNING else self.use_sarsa()
+        switcher = {
+            Algorithm.QLEARNING: self.use_qlearning,
+            Algorithm.SARSA: self.use_sarsa,
+            Algorithm.QVLEARNING: self.use_qvlearning
+        }
+        al = switcher.get(ALGORITHM)
+        al()
 
     def map_state(self, xdif, ydif, vel):
         # Map the (xdif, ydif, vel) to the respective state, with regards to the grids
@@ -175,3 +247,10 @@ class Bot(object):
             json.dump(self.qvalues, fil)
             fil.close()
             print('Q-values updated on local file.')
+
+    def dump_vvalues(self):
+        if self.gameCNT % self.DUMPING_N == 0:
+            fil = open(FILE_VVALUES, 'w')
+            json.dump(self.vvalues, fil)
+            fil.close()
+            print('V-values updated on local file.')
