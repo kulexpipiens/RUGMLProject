@@ -19,13 +19,16 @@ class Bot(object):
         self.last_action = 0
         self.moves = []
 
+        # for changed policy to looking at more future steps
         self.possibilities = {}
 	self.actual = ""
 	self.sum = 0
         self.LENGTH_ACT = STEPS
 
+        # for using QV-learning also load V-values
         if ALGORITHM == Algorithm.QVLEARNING: self.load_vvalues()
 
+    ## loading V-values for QV-learning
     def load_vvalues(self):
         # Load q values from a JSON file
         self.vvalues = {}
@@ -36,6 +39,7 @@ class Bot(object):
         self.vvalues = json.load(fil)
         fil.close()
 
+    ## loading Q-values for all the algorithms
     def load_qvalues(self):
         # Load q values from a JSON file
         self.qvalues = {}
@@ -46,11 +50,10 @@ class Bot(object):
         self.qvalues = json.load(fil)
         fil.close()
 
+    ## recursion to generate all self.LENGTH_ACT possible future moves and Q-values sums
     def generate(self, i, xdif, ydif, vel):
         if i == self.LENGTH_ACT or xdif < -29:
             self.possibilities[self.actual] = self.sum
-            #print(self.sum)
-            #print("xdif: " + str(xdif) + ", ydif: " + str(ydif) + ", vel: " + str(vel) + ", state: " + self.map_state(xdif, ydif, vel))
             return
 
         state = self.map_state(xdif, ydif, vel)
@@ -70,6 +73,7 @@ class Bot(object):
 	self.actual = self.actual[:-1]
 	self.sum -= self.qvalues[state][1]
 
+    ## return if the agent should flap or not deppending on policy and other parameters
     def not_flap(self, xdif, ydif, vel):
         if POLICY == Policy.EGREEDY:
             if not math.isnan(EPSILON):
@@ -79,19 +83,19 @@ class Bot(object):
                 if 1.0 / int(getIteration()) > random.random():
                     return random.randint(0,1) == 0
         self.generate(0, xdif, ydif, vel)
-        #print(self.possibilities)
+
         max = float("-inf")
         out = 0
         for key, value in self.possibilities.iteritems():
-            #print(key + " "+str(value))
             if max <= value:
                 if max == value and out == 0:
                     continue
                 max = value
                 out = int(key[0])
-        #print(out)
+
         return True if out == 0 else False
 
+    ## act deppending on policy and other parameters
     def act(self, xdif, ydif, vel):
         # Chooses the best action with respect to the current state - Chooses 0 (don't flap) to tie-break
         state = self.map_state(xdif, ydif, vel)
@@ -99,20 +103,20 @@ class Bot(object):
 
         if self.not_flap(xdif, ydif, vel):
             self.moves.append( [self.last_state, self.last_action, state, 0] ) # Add the experience to the history
-            #print("xdif: " + str(xdif) + ", ydif: " + str(ydif) + ", vel: " + str(vel) + ", state: " + state + ", action: 0")
             self.last_state = state # Update the last_state with the current state
             self.last_action = 0
             return 0
         else:
             self.moves.append( [self.last_state, self.last_action, state, 1] ) # Add the experience to the history
-            #print("xdif: " + str(xdif) + ", ydif: " + str(ydif) + ", vel: " + str(vel) + ", state: " + state + ", action: 1")
             self.last_state = state # Update the last_state with the current state
             self.last_action = 1
             return 1
 
+    ## return last state
     def get_last_state(self):
         return self.last_state
-        
+
+    ## using Q-learning algorithm for update Q-values        
     def use_qlearning(self):
         #Update qvalues via iterating over experiences
         history = list(reversed(self.moves))
@@ -141,6 +145,7 @@ class Bot(object):
         self.dump_qvalues() # Dump q values (if game count % DUMPING_N == 0)
         self.moves = []  #clear history after updating strategies
 
+    ## using Q-learning algorithm for update Q-values (but history is not reversed)
     def use_qlearningfl(self):
         #Update qvalues via iterating over experiences
         history = list(self.moves)
@@ -157,9 +162,7 @@ class Bot(object):
             act = exp[1]
             res_state = exp[2]
             if t in r:
-                #print(str(max(self.qvalues[res_state])) == str(self.qvalues[res_state][exp[3]]) )
                 self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[0] + (self.discount)*max(self.qvalues[res_state]) )
-
             else:
                 #print(str(max(self.qvalues[res_state])) == str(self.qvalues[res_state][exp[3]]) )
                 self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*max(self.qvalues[res_state]) )
@@ -170,6 +173,7 @@ class Bot(object):
         self.dump_qvalues() # Dump q values (if game count % DUMPING_N == 0)
         self.moves = []  #clear history after updating strategies
 
+    ## updating V-values depending on parameters, and return new e-list
     def update_vvalues(self, reward, res_state, state, e):
         e_new = {}
         for key, value in e.iteritems():
@@ -182,7 +186,7 @@ class Bot(object):
             self.vvalues[k] = self.vvalues[k] + (self.lr * delta * e_new[k])
         return e_new
 
-
+    ## using QV-learning algorithm for update Q-values  
     def use_qvlearning(self):
         #Update qvalues via iterating over experiences
         history = list(self.moves)
@@ -190,7 +194,7 @@ class Bot(object):
         #Flag if the bird died in the top pipe
         high_death_flag = 1 if int(history[0][2].split('_')[1]) > 120 and history[len(history) - min(STEPS+1, 5) - 1][1] == 1 else 0
 
-        #Q-learning score updates
+        #QV-learning score updates
         size = len(history) - min(STEPS+1, 5) - high_death_flag
         t = 1
         r = range(1, size)
@@ -209,14 +213,14 @@ class Bot(object):
             else:
                 e = self.update_vvalues(self.r[1], res_state, state, e)
                 self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*self.vvalues[res_state] )
-            #print(state + ":" + str(self.qvalues[state][act]))
             t += 1
 
         self.gameCNT += 1 #increase game count
         self.dump_qvalues() # Dump q values (if game count % DUMPING_N == 0)
-        self.dump_vvalues()
+        self.dump_vvalues() # Dump v values (if game count % DUMPING_N == 0)
         self.moves = []  #clear history after updating strategies
-        
+
+    ## using SARSA algorithm for update Q-values         
     def use_sarsa(self):
         #Update qvalues via iterating over experiences
         history = list(self.moves)
@@ -228,19 +232,11 @@ class Bot(object):
         size = len(history) - min(STEPS+1, 5) - high_death_flag
         t = 1
         r = range(1, size)
-        #act = history[0][1]
-        #print("420_0_-9:" + str(self.qvalues["420_0_-9"]))
-        #print("420_10_-9:" + str(self.qvalues["420_10_-9"]))
-        #print("420_20_-9:" + str(self.qvalues["420_20_-9"]))
-        #print("420_30_-9:" + str(self.qvalues["420_30_-9"]))
-        #print("420_40_-9:" + str(self.qvalues["420_40_-9"]))
         for exp in history:
             act = exp[1]
             state = exp[0]
             res_state = exp[2]
             res_act = exp[3]
-            #print(self.qvalues[res_state])
-            #print(res_state)
             if t in r:
                 #print(self.qvalues[res_state][res_act])
                 #print(max(self.qvalues[res_state]))
