@@ -238,31 +238,17 @@ class Bot(object):
             res_state = exp[2]
             res_act = exp[3]
             if t in r:
-                #print(self.qvalues[res_state][res_act])
-                #print(max(self.qvalues[res_state]))
                 self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[0] + (self.discount)*self.qvalues[res_state][res_act] )
-                #print(self.qvalues[state][act])
-                
-                #print(self.qvalues[state][act])
-                #print((1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*max(self.qvalues[res_state]) ))
-                #print("\n")
             else:
-                #print(self.qvalues[res_state][res_act])
-                #print(max(self.qvalues[res_state]))
                 self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*self.qvalues[res_state][res_act] )
 
-                #print(self.qvalues[state][act])
-                #print((1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*max(self.qvalues[res_state]) ))
-                #print("\n")
-
             t += 1
-            #act = res_act
 
         self.gameCNT += 1 #increase game count
         self.dump_qvalues() # Dump q values (if game count % DUMPING_N == 0)
         self.moves = []  #clear history after updating strategies
 
-
+    ## update scores according to algorithm
     def update_scores(self):
         switcher = {
             Algorithm.QLEARNING: self.use_qlearning,
@@ -273,6 +259,7 @@ class Bot(object):
         al = switcher.get(ALGORITHM)
         al()
 
+    ## map state and return its string representation
     def map_state(self, xdif, ydif, vel):
         # Map the (xdif, ydif, vel) to the respective state, with regards to the grids
         # The state is a string, "xdif_ydif_vel"
@@ -291,6 +278,7 @@ class Bot(object):
 
         return str(int(xdif))+'_'+str(int(ydif))+'_'+str(vel)
 
+    ## save Q-values to file
     def dump_qvalues(self):
         # Dump the qvalues to the JSON file
         if self.gameCNT % self.DUMPING_N == 0:
@@ -299,6 +287,7 @@ class Bot(object):
             fil.close()
             print('Q-values updated on local file.')
 
+    ## save V-values to file
     def dump_vvalues(self):
         if self.gameCNT % self.DUMPING_N == 0:
             fil = open(FILE_VVALUES, 'w')
