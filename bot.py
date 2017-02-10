@@ -1,5 +1,8 @@
 import json
 from constants import *
+import random
+import math
+from plot_data_funcs import getIteration
 
 class Bot(object):
     # The Bot class that applies the Qlearning logic to Flappy bird game
@@ -68,9 +71,17 @@ class Bot(object):
 	self.sum -= self.qvalues[state][1]
 
     def not_flap(self, xdif, ydif, vel):
+        if POLICY == Policy.EGREEDY:
+            if not math.isnan(EPSILON):
+                if 1 - EPSILON < random.random():
+                    return random.randint(0,1) == 0
+            else:
+                if 1.0 / int(getIteration()) > random.random():
+                    return random.randint(0,1) == 0
         self.generate(0, xdif, ydif, vel)
         #print(self.possibilities)
         max = float("-inf")
+        out = 0
         for key, value in self.possibilities.iteritems():
             #print(key + " "+str(value))
             if max <= value:
@@ -130,6 +141,35 @@ class Bot(object):
         self.dump_qvalues() # Dump q values (if game count % DUMPING_N == 0)
         self.moves = []  #clear history after updating strategies
 
+    def use_qlearningfl(self):
+        #Update qvalues via iterating over experiences
+        history = list(self.moves)
+
+        #Flag if the bird died in the top pipe
+        high_death_flag = 1 if int(history[0][2].split('_')[1]) > 120 and history[len(history) - min(STEPS+1, 5) - 1][1] == 1 else 0
+
+        #Q-learning score updates
+        size = len(history) - min(STEPS+1, 5) - high_death_flag
+        t = 1
+        r = range(1, size)
+        for exp in history:
+            state = exp[0]
+            act = exp[1]
+            res_state = exp[2]
+            if t in r:
+                #print(str(max(self.qvalues[res_state])) == str(self.qvalues[res_state][exp[3]]) )
+                self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[0] + (self.discount)*max(self.qvalues[res_state]) )
+
+            else:
+                #print(str(max(self.qvalues[res_state])) == str(self.qvalues[res_state][exp[3]]) )
+                self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*max(self.qvalues[res_state]) )
+
+            t += 1
+
+        self.gameCNT += 1 #increase game count
+        self.dump_qvalues() # Dump q values (if game count % DUMPING_N == 0)
+        self.moves = []  #clear history after updating strategies
+
     def update_vvalues(self, reward, res_state, state, e):
         e_new = {}
         for key, value in e.iteritems():
@@ -145,14 +185,15 @@ class Bot(object):
 
     def use_qvlearning(self):
         #Update qvalues via iterating over experiences
-        history = list(reversed(self.moves))
+        history = list(self.moves)
 
         #Flag if the bird died in the top pipe
-        high_death_flag = True if int(history[0][2].split('_')[1]) > 120 else False
+        high_death_flag = 1 if int(history[0][2].split('_')[1]) > 120 and history[len(history) - min(STEPS+1, 5) - 1][1] == 1 else 0
 
         #Q-learning score updates
+        size = len(history) - min(STEPS+1, 5) - high_death_flag
         t = 1
-        r = range(1, min(STEPS+1, 5))
+        r = range(1, size)
 
         e = {}
         for key, value in self.vvalues.iteritems():
@@ -163,16 +204,12 @@ class Bot(object):
             act = exp[1]
             res_state = exp[2]
             if t in r:
-                e = self.update_vvalues(self.r[1], res_state, state, e)
-                self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*self.vvalues[res_state] )
-            elif high_death_flag and act:
-                e = self.update_vvalues(self.r[1], res_state, state, e)
-                self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*self.vvalues[res_state] )
-                high_death_flag = False
-            else:
                 e = self.update_vvalues(self.r[0], res_state, state, e)
                 self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[0] + (self.discount)*self.vvalues[res_state] )
-
+            else:
+                e = self.update_vvalues(self.r[1], res_state, state, e)
+                self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*self.vvalues[res_state] )
+            #print(state + ":" + str(self.qvalues[state][act]))
             t += 1
 
         self.gameCNT += 1 #increase game count
@@ -182,31 +219,48 @@ class Bot(object):
         
     def use_sarsa(self):
         #Update qvalues via iterating over experiences
-        history = list(reversed(self.moves))
+        history = list(self.moves)
 
         #Flag if the bird died in the top pipe
-        high_death_flag = True if int(history[0][2].split('_')[1]) > 120 else False
+        high_death_flag = 1 if int(history[0][2].split('_')[1]) > 120 and history[len(history) - min(STEPS+1, 5) - 1][1] == 1 else 0
 
-        #Q-learning score updates
+        #Sarsa score updates
+        size = len(history) - min(STEPS+1, 5) - high_death_flag
         t = 1
-        r = range(1, min(STEPS+1, 5))
-        act = history[0][1]
+        r = range(1, size)
+        #act = history[0][1]
+        #print("420_0_-9:" + str(self.qvalues["420_0_-9"]))
+        #print("420_10_-9:" + str(self.qvalues["420_10_-9"]))
+        #print("420_20_-9:" + str(self.qvalues["420_20_-9"]))
+        #print("420_30_-9:" + str(self.qvalues["420_30_-9"]))
+        #print("420_40_-9:" + str(self.qvalues["420_40_-9"]))
         for exp in history:
+            act = exp[1]
             state = exp[0]
             res_state = exp[2]
             res_act = exp[3]
+            #print(self.qvalues[res_state])
+            #print(res_state)
             if t in r:
-                self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*self.qvalues[res_state][res_act] )
-
-            elif high_death_flag and act:
-                self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*self.qvalues[res_state][res_act] )
-                high_death_flag = False
-
-            else:
+                #print(self.qvalues[res_state][res_act])
+                #print(max(self.qvalues[res_state]))
                 self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[0] + (self.discount)*self.qvalues[res_state][res_act] )
+                #print(self.qvalues[state][act])
+                
+                #print(self.qvalues[state][act])
+                #print((1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*max(self.qvalues[res_state]) ))
+                #print("\n")
+            else:
+                #print(self.qvalues[res_state][res_act])
+                #print(max(self.qvalues[res_state]))
+                self.qvalues[state][act] = (1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*self.qvalues[res_state][res_act] )
+
+                #print(self.qvalues[state][act])
+                #print((1- self.lr) * (self.qvalues[state][act]) + (self.lr) * ( self.r[1] + (self.discount)*max(self.qvalues[res_state]) ))
+                #print("\n")
 
             t += 1
-            act = res_act
+            #act = res_act
 
         self.gameCNT += 1 #increase game count
         self.dump_qvalues() # Dump q values (if game count % DUMPING_N == 0)
@@ -216,6 +270,7 @@ class Bot(object):
     def update_scores(self):
         switcher = {
             Algorithm.QLEARNING: self.use_qlearning,
+            Algorithm.QLEARNINGFL: self.use_qlearningfl,
             Algorithm.SARSA: self.use_sarsa,
             Algorithm.QVLEARNING: self.use_qvlearning
         }

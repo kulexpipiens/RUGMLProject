@@ -339,7 +339,7 @@ def mainGame(movementInfo):
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
-        if DEBUGGING and i>400: return
+        if DEBUGGING and i>DEBUGGING_S: return
         i+=1
 
 

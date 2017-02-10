@@ -44,4 +44,6 @@ for file in glob.glob('data/data_*'):
 for idx in indices:
 	plt.plot(col[idx][0], col[idx][1], col[idx][2], label=idx, linewidth=2)
 plt.legend(bbox_to_anchor=(1, 1), loc=1, borderaxespad=.5)
-plt.savefig("images2/plot1_TA"+str(TREND_ACCURACY)+"without"+str(notplotlr)+"_new_new.png", dpi=DPI)
+plt.xlabel('Iterations')
+plt.ylabel('Scores')
+plt.savefig("images2/plot1_TA"+str(TREND_ACCURACY)+"without"+str(notplotlr)+"_new_new2.png", dpi=DPI)

@@ -20,7 +20,8 @@ def plot_func(*args):
     else:
         file_name = FILE_DATA
         file_image = FILE_IMAGE
-    
+    #max_s = 0
+    #max_a = 0
     namea = file_name.split('_')
     change = len(namea) >= 9 and namea[2] == '15' and namea[6] == '1.0' and namea[8].split('.')[0] == '5'
     with open(file_name, 'r') as csvfile:
@@ -28,8 +29,10 @@ def plot_func(*args):
         for row in spamreader:
             iterations.append(float(row[0]))
             scores.append(float(row[1]))
+            #max_s = int(max(max_s, int(row[1])))
             # calculating trend
             averages.append(np.mean(scores[-TREND_ACCURACY:]))
+            #max_a = max(max_a, np.mean(scores[-TREND_ACCURACY:]))
             #du 15 di 1.0 sz 5
             if change and len(iterations) == 7000 and namea[4] != '1e-05':
                 break;
@@ -44,6 +47,8 @@ def plot_func(*args):
     plt.plot(iterations, averages, "b")
     plt.savefig(file_image, dpi=DPI)
     plt.clf()
+    #print(max_s)
+    #print(max_a)
 
 if __name__ == '__main__':
     plot_func()

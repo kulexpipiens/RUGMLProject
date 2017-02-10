@@ -15,7 +15,7 @@ def initialize_data():
             for v in range(-10,11):
                 state = str(x)+'_'+str(y)+'_'+str(v)
                 qval[state] = [0,0]
-                if ALGORITHM == Algorithm.QVLEARNING: vval[state] = 0
+                if ALGORITHM == Algorithm.QVLEARNING: vval[state] = 0.0
 
 
     fd = open(FILE_QVALUES, 'w+')
